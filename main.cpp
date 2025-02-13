@@ -76,6 +76,7 @@ glm::vec3 g_rotation_car    = glm::vec3(0.0f, 0.0f, 0.0f);
 GLuint g_heli_texture_id,
        g_car_texture_id;
 
+
 GLuint load_texture(const char* filepath)
 {
     int width, height, number_of_components;
@@ -164,17 +165,31 @@ void update() {
     float ticks = (float) SDL_GetTicks() / 1000.0; // Seconds since start
     float delta_time = ticks - g_previous_ticks; // Seconds since the last frame
     g_previous_ticks = ticks;
+    
+    g_rotation_car.y += -1.0f * delta_time;
 
     g_heli_translation.x += 1.0f * delta_time;
     g_heli_translation.y += 1.0f * delta_time;
     g_car_translation.x += 1.3f * delta_time;
     g_car_translation.y += 1.3f * delta_time;
     
+    // Change scale of helicopter
+    float scale_factor = 1.0f + 0.5f * sin(ticks * 2.0f);
+    
+    // Reset
     g_heli_matrix    = glm::mat4(1.0f);
     g_car_matrix    = glm::mat4(1.0f);
     
-    g_heli_matrix = glm::translate(g_heli_matrix, glm::vec3(cos(g_heli_translation.x), sin(g_heli_translation.y), 0.0f)); // Now translate the identity matrix
-    g_car_matrix = glm::translate(g_heli_matrix, glm::vec3(cos(g_car_translation.x), sin(g_car_translation.y), 0.0f));
+    // Move in circles
+    g_heli_matrix = glm::translate(g_heli_matrix, glm::vec3(cos(g_heli_translation.x), sin(g_heli_translation.y), 0.0f));
+    // Move in circles around the helicopter
+    g_car_matrix = glm::translate(g_heli_matrix, glm::vec3(cos(g_car_translation.x)+g_heli_translation.x, sin(g_car_translation.y)+g_heli_translation.y, 0.0f));
+    
+    // Helicopter getting bigger and smaller
+    g_heli_matrix = glm::scale(g_heli_matrix, glm::vec3(scale_factor, scale_factor, 1.0f));
+    
+    // Rotation
+    g_car_matrix = glm::rotate(g_car_matrix, g_rotation_car.y, glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void draw_object(glm::mat4 &object_g_model_matrix, GLuint &object_texture_id)
